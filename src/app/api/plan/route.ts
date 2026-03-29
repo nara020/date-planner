@@ -10,7 +10,7 @@ function getOpenAI() {
 
 // POST - AI 데이트 플랜 생성
 export async function POST(req: NextRequest) {
-  const { userId, request, weather } = await req.json();
+  const { userId, request, weather, dateType, timeRange } = await req.json();
 
   if (!userId) {
     return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 400 });
@@ -28,11 +28,11 @@ export async function POST(req: NextRequest) {
     const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "JSON만 출력하세요." },
+        { role: "system", content: "당신은 한국 최고의 커플 데이트 플래너 AI입니다. 반드시 유효한 JSON만 출력하세요. 다른 텍스트는 절대 포함하지 마세요." },
         { role: "user", content: prompt },
       ],
       temperature: 0.8,
-      max_tokens: 2000,
+      max_tokens: 2500,
     });
 
     const content = completion.choices[0].message.content || "{}";
@@ -48,6 +48,8 @@ export async function POST(req: NextRequest) {
       totalBudget: planData.totalBudget || "",
       tags: planData.tags || [],
       mood: planData.mood || "",
+      dateType: dateType || undefined,
+      timeRange: timeRange || undefined,
       createdAt: new Date().toISOString(),
       saved: false,
     };

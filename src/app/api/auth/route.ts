@@ -15,13 +15,19 @@ export async function POST(req: NextRequest) {
 
   if (existing) {
     appData = typeof existing === "string" ? JSON.parse(existing) : existing;
-    appData.profile = profile;
+    appData.profile = { ...appData.profile, ...profile };
   } else {
     appData = {
       profile: { ...profile, createdAt: new Date().toISOString() },
       plans: [],
       savedCourses: [],
+      savedPlans: [],
     };
+  }
+
+  // Ensure savedPlans exists for backward compatibility
+  if (!appData.savedPlans) {
+    appData.savedPlans = [];
   }
 
   await redis.set(userKey(profile.id), JSON.stringify(appData));
@@ -41,5 +47,11 @@ export async function GET(req: NextRequest) {
   }
 
   const appData: AppData = typeof data === "string" ? JSON.parse(data) : data;
+
+  // Ensure savedPlans exists for backward compatibility
+  if (!appData.savedPlans) {
+    appData.savedPlans = [];
+  }
+
   return NextResponse.json(appData);
 }
